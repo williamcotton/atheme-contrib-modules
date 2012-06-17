@@ -63,7 +63,6 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 	mychan_t *mc;
 	chanacs_t *ca;
 	metadata_t *md;
-    //printf("  just joined   ");
     
     if (cu == NULL)
 		return;
