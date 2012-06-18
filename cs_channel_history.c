@@ -10,6 +10,8 @@
 #include <string.h>
 #include <sys/time.h>
 
+#include <hiredis/hiredis.h>
+
 DECLARE_MODULE_V1
 (
 	"contrib/cs_channel_history", false, _modinit, _moddeinit,
@@ -25,7 +27,19 @@ on_channel_message(hook_cmessage_data_t *data)
 		mychan_t *mc = MYCHAN_FROM(data->c);
 		metadata_t *md;
 		
-        printf(" -------- <%s> %s\n", data->u->nick, data->msg);
+		char value[565];
+        char list[100];
+        
+        
+
+        char *message = data->msg;
+
+        char *nick = data->u->nick;
+        char *room = data->c->name;
+        
+        sprintf(list, "channel_history:%s", room);
+		
+        printf(" -------- <%s> %s\n", nick, message);
 
 	}
 }
@@ -41,8 +55,16 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 	mychan_t *mc;
 	chanacs_t *ca;
 	metadata_t *md;
+	
+    char list[100];
+    char *message;
+	
+    char *nick = cu->user->nick;
+    char *room = c->name;
     
-    printf(" -------- %s joined %s\n", cu->user->nick, c->name);
+    sprintf(list, "channel_history:%s", room);
+    
+    printf(" -------- %s joined %s\n", nick, room);
     
 }
 
