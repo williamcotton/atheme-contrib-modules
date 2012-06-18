@@ -39,7 +39,7 @@ on_channel_message(hook_cmessage_data_t *data)
         
         sprintf(list, "channel_history:%s", room);
 		
-        printf(" -------- <%s> %s\n", nick, message);
+        printf(" --- %s ----- <%s> %s\n", room, nick, message);
 
 	}
 }
