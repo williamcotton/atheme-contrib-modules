@@ -63,38 +63,11 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 	chanacs_t *ca;
 	metadata_t *md;
     
-     //    if (cu == NULL)
-    //  return;
-    // if (!(cu->user->server->flags & SF_EOB))
-    //  return;
-    // mu = cu->user->myuser;
-    // mc = MYCHAN_FROM(cu->chan);
-    // if (mu == NULL || mc == NULL)
-    //  return;
-    // ca = chanacs_find_literal(mc, entity(mu), 0);
-    // if (ca == NULL || ca->level & CA_AKICK)
-    //  return;
-    printf(" -- xx -- ");
     printf(" -------- %s joined %s\n", cu->user->nick, c->name);
     
     REDIS redis;
-    REDIS_INFO info;
-    
     redis = credis_connect("localhost", 6379, 10000);
-    
-    int i;
-    long t;
-    int num = 100;
-    printf("Sending %d 'set' commands ...\n", num);
-    timer(1);
-    for (i=0; i<num; i++) {
-    if (credis_set(redis, "kalle", "qwerty") != 0)
-      printf("get returned error\n");
-    }
-    t = timer(0);
-    printf("done! Took %.3f seconds, that is %ld commands/second\n", ((float)t)/1000, (num*1000)/t);
-    
-    /* close connection to redis server */
+    credis_set(redis, "kalle", "qwerty");
     credis_close(redis);
 }
 
@@ -103,11 +76,11 @@ void _modinit(module_t *m)
 	hook_add_event("channel_message");
 	hook_add_channel_message(on_channel_message);
 	
-    // hook_add_event("channel_join");
-    // hook_add_channel_join(on_channel_join);
+    hook_add_event("channel_join");
+    hook_add_channel_join(on_channel_join);
 	
-	hook_add_event("channel_join");
-	hook_add_first_channel_join(on_channel_join);
+    // hook_add_event("channel_join");
+    // hook_add_first_channel_join(on_channel_join);
 	
 	//hook_channel_joinpart_t
 }
