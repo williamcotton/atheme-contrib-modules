@@ -75,7 +75,7 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 	ca = chanacs_find_literal(mc, entity(mu), 0);
 	if (ca == NULL || ca->level & CA_AKICK)
 		return;
-    printf(" ---- ");
+    // printf(" ---- ");
     printf(" -------- %s joined %s\n", cu->user->nick, c->name);
     
     REDIS redis;
@@ -94,6 +94,9 @@ on_channel_join(hook_channel_joinpart_t *hdata)
     }
     t = timer(0);
     printf("done! Took %.3f seconds, that is %ld commands/second\n", ((float)t)/1000, (num*1000)/t);
+    
+    /* close connection to redis server */
+    credis_close(redis);
 }
 
 void _modinit(module_t *m)
@@ -101,8 +104,11 @@ void _modinit(module_t *m)
 	hook_add_event("channel_message");
 	hook_add_channel_message(on_channel_message);
 	
+    // hook_add_event("channel_join");
+    // hook_add_channel_join(on_channel_join);
+	
 	hook_add_event("channel_join");
-	hook_add_channel_join(on_channel_join);
+	hook_add_first_channel_join(on_channel_join);
 	
 	//hook_channel_joinpart_t
 }
@@ -110,6 +116,7 @@ void _modinit(module_t *m)
 void _moddeinit(module_unload_intent_t intent)
 {
 	hook_del_channel_message(on_channel_message);
+	hook_del_channel_join(on_channel_join);
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs
