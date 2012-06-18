@@ -56,7 +56,6 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 {
     channel_t *c = hdata->cu->chan;
     user_t *u = hdata->cu->user;
-	//mychan_t *mc = MYCHAN_FROM(c);
 	
 	chanuser_t *cu = hdata->cu;
 	myuser_t *mu;
@@ -64,17 +63,17 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 	chanacs_t *ca;
 	metadata_t *md;
     
-    if (cu == NULL)
-		return;
-	if (!(cu->user->server->flags & SF_EOB))
-		return;
-	mu = cu->user->myuser;
-	mc = MYCHAN_FROM(cu->chan);
-	if (mu == NULL || mc == NULL)
-		return;
-	ca = chanacs_find_literal(mc, entity(mu), 0);
-	if (ca == NULL || ca->level & CA_AKICK)
-		return;
+     //    if (cu == NULL)
+    //  return;
+    // if (!(cu->user->server->flags & SF_EOB))
+    //  return;
+    // mu = cu->user->myuser;
+    // mc = MYCHAN_FROM(cu->chan);
+    // if (mu == NULL || mc == NULL)
+    //  return;
+    // ca = chanacs_find_literal(mc, entity(mu), 0);
+    // if (ca == NULL || ca->level & CA_AKICK)
+    //  return;
     printf(" -- xx -- ");
     printf(" -------- %s joined %s\n", cu->user->nick, c->name);
     
