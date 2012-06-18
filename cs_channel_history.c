@@ -56,7 +56,7 @@ on_channel_message(hook_cmessage_data_t *data)
         }
         freeReplyObject(reply);
 
-        disconnect(redis);
+        freeRedis(redis);
 	}
 }
 
@@ -91,7 +91,7 @@ on_channel_join(hook_channel_joinpart_t *hdata)
     }
     freeReplyObject(reply);
     
-    disconnect(redis);
+    freeRedis(redis);
 }
 
 void _modinit(module_t *m)
