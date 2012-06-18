@@ -75,7 +75,7 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 	ca = chanacs_find_literal(mc, entity(mu), 0);
 	if (ca == NULL || ca->level & CA_AKICK)
 		return;
-    // printf(" ---- ");
+    printf(" -- xx -- ");
     printf(" -------- %s joined %s\n", cu->user->nick, c->name);
     
     REDIS redis;
