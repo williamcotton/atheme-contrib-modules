@@ -35,11 +35,11 @@ on_channel_message(hook_cmessage_data_t *data)
         char *message = data->msg;
 
         char *nick = data->u->nick;
-        char *room = data->c->name;
+        char *channel = data->c->name;
         
-        sprintf(list, "channel_history:%s", room);
+        sprintf(list, "channel_history:%s", channel);
 		
-        printf(" --- %s ----- <%s> %s\n", room, nick, message);
+        printf(" --- %s ----- <%s> %s\n", channel, nick, message);
         
         sprintf(value, "%s:::%s", nick, message);
         printf("%s\n", value);
@@ -76,11 +76,11 @@ on_channel_join(hook_channel_joinpart_t *hdata)
     char *message;
 	
     char *nick = cu->user->nick;
-    char *room = c->name;
+    char *channel = c->name;
     
-    sprintf(list, "channel_history:%s", room);
+    sprintf(list, "channel_history:%s", channel);
     
-    printf(" -------- %s joined %s\n", nick, room);
+    printf(" -------- %s joined %s\n", nick, channel);
     
     redisContext *redis = redisConnect("127.0.0.1", 6379);
     redisReply *reply;
@@ -88,7 +88,11 @@ on_channel_join(hook_channel_joinpart_t *hdata)
     reply = redisCommand(redis,"LRANGE %s 0 -1", list);   
     for (int i = 0; i < reply->elements; i++) {
         printf("\n --- %s", reply->element[i]->str);
+        msg(chansvs.nick, channel, "%s", reply->element[i]->str);
     }
+    
+    
+    
     freeReplyObject(reply);
     
     redisFree(redis);
