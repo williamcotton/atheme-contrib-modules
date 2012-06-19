@@ -10,7 +10,7 @@
 #include <string.h>
 #include <sys/time.h>
 
-//#include <hiredis/hiredis.h>
+#include <hiredis/hiredis.h>
 
 DECLARE_MODULE_V1
 (
@@ -27,7 +27,36 @@ on_channel_message(hook_cmessage_data_t *data)
 		mychan_t *mc = MYCHAN_FROM(data->c);
 		metadata_t *md;
 		
-        printf(" -------- <%s> %s\n", data->u->nick, data->msg);
+		char value[565];
+        char list[100];
+        
+        
+
+        char *message = data->msg;
+
+        char *nick = data->u->nick;
+        char *room = data->c->name;
+        
+        sprintf(list, "channel_history:%s", room);
+		
+        printf(" --- %s ----- <%s> %s\n", room, nick, message);
+        
+        sprintf(value, "%s:::%s", nick, message);
+        printf("%s\n", value);
+        
+        redisContext *redis = redisConnect("127.0.0.1", 6379);
+        redisReply *reply;
+        
+        reply = redisCommand(redis, "RPUSH %s %s", list, value);
+        freeReplyObject(reply);
+
+        reply = redisCommand(redis, "LLEN %s", list);
+        if (reply->integer > 5) {
+            redisCommand(redis, "LPOP %s", list);
+        }
+        freeReplyObject(reply);
+
+        redisFree(redis);
 	}
 }
 
@@ -42,9 +71,27 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 	mychan_t *mc;
 	chanacs_t *ca;
 	metadata_t *md;
+	
+    char list[100];
+    char *message;
+	
+    char *nick = cu->user->nick;
+    char *room = c->name;
     
-    printf(" -------- %s joined %s\n", cu->user->nick, c->name);
+    sprintf(list, "channel_history:%s", room);
     
+    printf(" -------- %s joined %s\n", nick, room);
+    
+    redisContext *redis = redisConnect("127.0.0.1", 6379);
+    redisReply *reply;
+    
+    reply = redisCommand(redis,"LRANGE %s 0 -1", list);   
+    for (int i = 0; i < reply->elements; i++) {
+        printf("\n --- %s", reply->element[i]->str);
+    }
+    freeReplyObject(reply);
+    
+    redisFree(redis);
 }
 
 void _modinit(module_t *m)
