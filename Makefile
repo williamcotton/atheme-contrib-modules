@@ -14,8 +14,6 @@ include ../../extra.mk
 include ../../buildsys.mk
 include ../../buildsys.module.mk
 
-LD_LIBRARY_PATH     += /usr/local/lib
-
 CPPFLAGS	+= -I../../include
 CFLAGS		+= ${PLUGIN_CFLAGS}
-LIBS +=	-L../../libathemecore -lathemecore ${LDFLAGS_RPATH} -lhiredis
+LIBS +=	-L../../libathemecore -lathemecore -L/usr/local/lib -lhiredis ${LDFLAGS_RPATH}
