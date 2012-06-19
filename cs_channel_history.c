@@ -10,6 +10,8 @@
 #include <string.h>
 #include <sys/time.h>
 
+#include <hiredis/hiredis.h>
+
 DECLARE_MODULE_V1
 (
 	"contrib/cs_channel_history", false, _modinit, _moddeinit,
