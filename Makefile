@@ -17,4 +17,3 @@ include ../../buildsys.module.mk
 CPPFLAGS	+= -I../../include
 CFLAGS		+= ${PLUGIN_CFLAGS}
 LIBS +=	-L../../libathemecore -lathemecore ${LDFLAGS_RPATH}
-

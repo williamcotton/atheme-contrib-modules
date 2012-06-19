@@ -26,7 +26,6 @@ on_channel_message(hook_cmessage_data_t *data)
 		metadata_t *md;
 		
         printf(" -------- <%s> %s\n", data->u->nick, data->msg);
-
 	}
 }
 
