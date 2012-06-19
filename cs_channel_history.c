@@ -20,29 +20,32 @@ DECLARE_MODULE_V1
 static void
 on_channel_message(hook_cmessage_data_t *data)
 {
-	if (data != NULL && data->msg != NULL)
-	{
-		mychan_t *mc = MYCHAN_FROM(data->c);
-		metadata_t *md;
-		
-        printf(" -------- <%s> %s\n", data->u->nick, data->msg);
-
-	}
+    
+    printf("this is a test!");
+    
+    // if (data != NULL && data->msg != NULL)
+    // {
+    //  mychan_t *mc = MYCHAN_FROM(data->c);
+    //  metadata_t *md;
+    //  
+    //         printf(" -------- <%s> %s\n", data->u->nick, data->msg);
+    // 
+    // }
 }
 
 static void
 on_channel_join(hook_channel_joinpart_t *hdata)
 {
-    channel_t *c = hdata->cu->chan;
-    user_t *u = hdata->cu->user;
-	
-	chanuser_t *cu = hdata->cu;
-	myuser_t *mu;
-	mychan_t *mc;
-	chanacs_t *ca;
-	metadata_t *md;
-    
-    printf(" -------- %s joined %s\n", cu->user->nick, c->name);
+    //     channel_t *c = hdata->cu->chan;
+    //     user_t *u = hdata->cu->user;
+    // 
+    // chanuser_t *cu = hdata->cu;
+    // myuser_t *mu;
+    // mychan_t *mc;
+    // chanacs_t *ca;
+    // metadata_t *md;
+    //     
+    //     printf(" -------- %s joined %s\n", cu->user->nick, c->name);
     
 }
 
