@@ -121,4 +121,4 @@ cs_channel_history.o cs_channel_history.lib.o cs_channel_history.plugin.o: cs_ch
   ../../include/sourceinfo.h ../../include/taint.h \
   ../../include/database_backend.h ../../include/uid.h \
   ../../include/inline/account.h ../../include/inline/channels.h \
-  ../../include/inline/connection.h /usr/local/include/credis.h
+  ../../include/inline/connection.h /usr/local/include/hiredis/hiredis.h
