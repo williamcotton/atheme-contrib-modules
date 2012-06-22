@@ -65,9 +65,10 @@ on_channel_message(hook_cmessage_data_t *data)
 		int isJSONCTCP = 0;
 		while (pch != NULL) {
 			puts(pch);
-			if (i == 3) {
+			if (i == 0) {
 				int len = strlen(pch);
-				printf("\nlen: %d\npch[0]: %d\n", len, pch[0]);
+				printf("\nlen: %d",len);
+				printf("\npch[0]: %d",pch[0]);
 				if (strcmp(pch, "JSON") == 0) {
 					isJSONCTCP = 1;
 					puts("\nis a JSON CTCP message");
