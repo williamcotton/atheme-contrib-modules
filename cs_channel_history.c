@@ -33,17 +33,17 @@ on_channel_message(hook_cmessage_data_t *data)
 		char value[565];
         char list[100];
         
-		char message[565];
-		sprintf(message, "%s", data->msg);
+		char check_message[565];
+		sprintf(check_message, "%s", data->msg);
 
-        //char *message = data->msg;
+        char *message = data->msg;
 
         char *nick = data->u->nick;
         char *channel = data->c->name;
         
         sprintf(list, "channel_history:%s", channel);
 		
-        printf(" --- %s ----- <%s> %s\n", channel, nick, message);
+        //printf(" --- %s ----- <%s> %s\n", channel, nick, message);
 
 		//////
 		
@@ -58,7 +58,7 @@ on_channel_message(hook_cmessage_data_t *data)
 		char jsonIn[565];
 
 		char * pch;
-		pch = strtok(message," ");
+		pch = strtok(check_message," ");
 		int i = 0;
 		int isJSONCTCP = 0;
 		while (pch != NULL) {
@@ -81,6 +81,23 @@ on_channel_message(hook_cmessage_data_t *data)
 
 		if (strlen(jsonIn) > 0) {
 			puts(jsonIn);
+			
+			sprintf(value, "%s:::%s", nick, jsonIn);
+	        printf("%s\n", value);
+
+	        redisContext *redis = redisConnect("127.0.0.1", 6379);
+	        redisReply *reply;
+
+	        reply = redisCommand(redis, "RPUSH %s %s", list, value);
+	        freeReplyObject(reply);
+
+	        reply = redisCommand(redis, "LLEN %s", list);
+	        if (reply->integer > 50) {
+	            redisCommand(redis, "LPOP %s", list);
+	        }
+	        freeReplyObject(reply);
+
+	        redisFree(redis);
 			// new_obj = json_tokener_parse(jsonIn);
 			// 
 			// avatar = json_object_object_get(new_obj, "avatar");
@@ -109,22 +126,6 @@ on_channel_message(hook_cmessage_data_t *data)
 		
 		////////
         
-        sprintf(value, "%s:::%s", nick, message);
-        printf("%s\n", value);
-        
-        redisContext *redis = redisConnect("127.0.0.1", 6379);
-        redisReply *reply;
-        
-        reply = redisCommand(redis, "RPUSH %s %s", list, value);
-        freeReplyObject(reply);
-
-        reply = redisCommand(redis, "LLEN %s", list);
-        if (reply->integer > 50) {
-            redisCommand(redis, "LPOP %s", list);
-        }
-        freeReplyObject(reply);
-
-        redisFree(redis);
 	}
 }
 
