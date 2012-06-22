@@ -63,6 +63,7 @@ on_channel_message(hook_cmessage_data_t *data)
 		int isJSONCTCP = 0;
 		while (pch != NULL) {
 			if (i == 3) {
+				puts(pch);
 				int len = strlen(pch);
 				if (strcmp(pch, ":JSON") == 0) {
 					isJSONCTCP = 1;
