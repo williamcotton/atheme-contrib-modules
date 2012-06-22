@@ -54,10 +54,6 @@ on_channel_message(hook_cmessage_data_t *data)
 		avatar = json_object_object_get(new_obj, "avatar");
 		const char *avatar_url = json_object_get_string(avatar);
 		printf("\nAvatar URL = %s", avatar_url);
-
-		date = json_object_object_get(new_obj, "date");
-		const char *date_string = json_object_get_string(date);
-		printf("\nDate = %s", date_string);
 		
 		////////
         
