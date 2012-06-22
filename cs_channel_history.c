@@ -33,9 +33,10 @@ on_channel_message(hook_cmessage_data_t *data)
 		char value[565];
         char list[100];
         
-        
+		char message[565];
+		sprintf(message, "%s", data->msg);
 
-        char *message = data->msg;
+        //char *message = data->msg;
 
         char *nick = data->u->nick;
         char *channel = data->c->name;
@@ -49,11 +50,63 @@ on_channel_message(hook_cmessage_data_t *data)
 		json_object *new_obj;
 		json_object *avatar;
 		json_object *date;
-		new_obj = json_tokener_parse("{ \"avatar\": \"http://test.com/image.png\" }");
 
-		avatar = json_object_object_get(new_obj, "avatar");
-		const char *avatar_url = json_object_get_string(avatar);
-		printf("\nAvatar URL = %s", avatar_url);
+		// char message[] = ":user16690!~user16690@174.129.220.161 PRIVMSG user75436 :JSON {\"test\":\"dsf sdfsdf sdf sdf\", \"avatar\":\"home/05f3e9d8-5423-4778-b0d9-a9cc07d655c4.jpg\"}";
+
+		// puts(message);
+
+		char jsonIn[565];
+
+		char * pch;
+		pch = strtok(message," ");
+		int i = 0;
+		int isJSONCTCP = 0;
+		while (pch != NULL) {
+			if (i == 3) {
+				int len = strlen(pch);
+				if (strcmp(pch, ":JSON") == 0) {
+					isJSONCTCP = 1;
+					puts("\nis a JSON CTCP message");
+				}
+			}
+			if (i == 4 && isJSONCTCP == 1) {
+				strcpy(jsonIn, pch);
+			}
+			if (i > 4 && isJSONCTCP == 1) {
+				strcat(jsonIn, " ");
+				strcat(jsonIn, pch);
+			}
+			pch = strtok (NULL, " ");
+			i++;
+		}
+
+		if (strlen(jsonIn) > 0) {
+			puts(jsonIn);
+			// new_obj = json_tokener_parse(jsonIn);
+			// 
+			// avatar = json_object_object_get(new_obj, "avatar");
+			// const char *avatar_url = json_object_get_string(avatar);
+			// printf("\nAvatar URL = %s", avatar_url);
+			// 
+			// /* Obtain current time as seconds elapsed since the Epoch. */
+			// 	    time_t clock = time(NULL);
+			// 
+			// 	    /* Convert to local time format and print to stdout. */
+			// 
+			// char *currentTime = ctime(&clock);
+			// 	    printf("\nCurrent time is %s", currentTime);
+			// 
+			// long epoch_time = (long) clock;
+			// printf("\nseconds since the Epoch: %ld\n", epoch_time);
+			// 
+			// json_object *output;
+			// 
+			// //output = json_object_new_object();
+			// json_object_object_add(new_obj, "epoch_time", json_object_new_int(epoch_time));
+			// json_object_object_add(new_obj, "time", json_object_new_string(currentTime));
+			// 
+			// printf("\n%s", json_object_to_json_string(new_obj));
+		}
 		
 		////////
         
