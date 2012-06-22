@@ -9,7 +9,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
+#include <stddef.h>
+#include <time.h>
 
+#include <json/json.h>
 #include <hiredis/hiredis.h>
 
 DECLARE_MODULE_V1
@@ -40,6 +43,23 @@ on_channel_message(hook_cmessage_data_t *data)
         sprintf(list, "channel_history:%s", channel);
 		
         printf(" --- %s ----- <%s> %s\n", channel, nick, message);
+
+		//////
+		
+		json_object *new_obj;
+		json_object *avatar;
+		json_object *date;
+		new_obj = json_tokener_parse("{ \"avatar\": \"http://test.com/image.png\" }");
+
+		avatar = json_object_object_get(new_obj, "avatar");
+		const char *avatar_url = json_object_get_string(avatar);
+		printf("\nAvatar URL = %s", avatar_url);
+
+		date = json_object_object_get(new_obj, "date");
+		const char *date_string = json_object_get_string(date);
+		printf("\nDate = %s", date_string);
+		
+		////////
         
         sprintf(value, "%s:::%s", nick, message);
         printf("%s\n", value);
@@ -51,7 +71,7 @@ on_channel_message(hook_cmessage_data_t *data)
         freeReplyObject(reply);
 
         reply = redisCommand(redis, "LLEN %s", list);
-        if (reply->integer > 5) {
+        if (reply->integer > 50) {
             redisCommand(redis, "LPOP %s", list);
         }
         freeReplyObject(reply);
