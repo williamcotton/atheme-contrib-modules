@@ -30,28 +30,15 @@ on_channel_message(hook_cmessage_data_t *data)
 		mychan_t *mc = MYCHAN_FROM(data->c);
 		metadata_t *md;
 		
-		char value[565];
         char list[100];
         
 		char check_message[565];
 		sprintf(check_message, "%s", data->msg);
 
-        char *message = data->msg;
-
         char *nick = data->u->nick;
         char *channel = data->c->name;
         
         sprintf(list, "channel_history:%s", channel);
-		
-        //printf(" --- %s ----- <%s> %s\n", channel, nick, message);
-
-		//////
-		
-
-
-		// char message[] = ":user16690!~user16690@174.129.220.161 PRIVMSG user75436 :JSON {\"test\":\"dsf sdfsdf sdf sdf\", \"avatar\":\"home/05f3e9d8-5423-4778-b0d9-a9cc07d655c4.jpg\"}";
-
-		// puts(message);
 
 		char jsonIn[565];
 
@@ -63,7 +50,6 @@ on_channel_message(hook_cmessage_data_t *data)
 			if (i == 0) {
 				if (strcmp(pch, "JSON") == 0) {
 					isJSONCTCP = 1;
-					puts("\nis a JSON CTCP message");
 				}
 			}
 			if (i == 1 && isJSONCTCP == 1) {
@@ -78,46 +64,31 @@ on_channel_message(hook_cmessage_data_t *data)
 		}
 
 		if (strlen(jsonIn) > 0) {
-			puts(jsonIn);
 			
 			json_object *new_obj;
-			// json_object *avatar;
-			// json_object *date;
 			
 			new_obj = json_tokener_parse(jsonIn);
-			
-			// avatar = json_object_object_get(new_obj, "avatar");
-			// const char *avatar_url = json_object_get_string(avatar);
-			// printf("\nAvatar URL = %s", avatar_url);
-			
-			/* Obtain current time as seconds elapsed since the Epoch. */
+
 			time_t clock = time(NULL);
 			
-				    /* Convert to local time format and print to stdout. */
-			
 			char *currentTime = ctime(&clock);
-				    printf("\nCurrent time is %s", currentTime);
-			
 			long epoch_time = (long) clock;
-			printf("\nseconds since the Epoch: %ld\n", epoch_time);
-			
-			json_object *output;
-			
-			//output = json_object_new_object();
+
 			json_object_object_add(new_obj, "epoch_time", json_object_new_int(epoch_time));
 			json_object_object_add(new_obj, "time", json_object_new_string(currentTime));
+			json_object_object_add(new_obj, "nick", json_object_new_string(nick));
+			json_object_object_add(new_obj, "channel", json_object_new_string(channel));
 			
 			char jsonSave[565];
 			
 			sprintf(jsonSave, "%s", json_object_to_json_string(new_obj));
 			
-			sprintf(value, "%s:::%s", nick, jsonSave);
-	        printf("%s\n", value);
+	        printf("%s\n", jsonSave);
 
 	        redisContext *redis = redisConnect("127.0.0.1", 6379);
 	        redisReply *reply;
 
-	        reply = redisCommand(redis, "RPUSH %s %s", list, value);
+	        reply = redisCommand(redis, "RPUSH %s %s", list, jsonSave);
 	        freeReplyObject(reply);
 
 	        reply = redisCommand(redis, "LLEN %s", list);
@@ -128,8 +99,6 @@ on_channel_message(hook_cmessage_data_t *data)
 
 	        redisFree(redis);
 		}
-		
-		////////
         
 	}
 }
