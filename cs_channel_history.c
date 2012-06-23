@@ -160,7 +160,7 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 		epoch_time_obj = json_object_object_get(new_obj, "epoch_time");
 		
 		if ((long)epoch_time_obj == 1) {
-			return;
+			break;
 		}
 		
 		printf("(int)epoch_time_obj: %li\n",(long)epoch_time_obj);
