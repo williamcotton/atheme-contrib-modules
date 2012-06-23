@@ -145,14 +145,16 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 		o_type = json_object_get_type(new_obj);
 		
 		if (o_type == json_type_null) {
-			puts("not a JSON object");
+			redisCommand(redis, "LREM %s %d %s", list, 0, reply->element[i]->str);
+			puts("not a JSON object, removing");
 			continue;
 		}
 		
 		epoch_time_obj = json_object_object_get(new_obj, "epoch_time");
 		
 		if ((long)epoch_time_obj == 1) {
-			puts("it looks like an issue with the epoch_time_obj...");
+			redisCommand(redis, "LREM %s %d %s", list, 0, reply->element[i]->str);
+			puts("it looks like an issue with the epoch_time_obj, removing");
 			continue;
 		}
 		
@@ -163,21 +165,24 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 		type = json_object_get_type(epoch_time_obj);
 		
 		if (json_object_is_type(epoch_time_obj, json_type_int)) {
-			puts("1");
+			puts("CHECKING TIME STAMP");
 			int msg_epoch_time = json_object_get_int(epoch_time_obj);
 			printf("\nepoch_time: %d", msg_epoch_time);
 
-			puts("2");
-
+			int max_hours = 12;
+			int max_seconds = 60*60*max_hours;
+			
 			int difference;
 			difference = current_epoch_time - msg_epoch_time;
 			printf("\ndifference: %d", difference);
-			
-			puts("3");
-	        
+			if (difference > max_seconds) {
+				puts("TOO OLD, DELETING");
+				redisCommand(redis, "LREM %s %d %s", list, 0, reply->element[i]->str);
+				continue;
+			}
 	        msg(chansvs.nick, nick, "JSON %s", reply->element[i]->str); // "JSON" has a \001 as that space, be warry of that!!!
 	
-			puts("4");
+			puts("DONE");
 		}
 
     }
