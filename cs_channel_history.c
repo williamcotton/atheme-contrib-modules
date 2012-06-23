@@ -156,6 +156,11 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 	
 		new_obj = json_tokener_parse(reply->element[i]->str);
 		
+		json_type o_type;
+		o_type = json_object_get_type(new_obj);
+		
+		printf("\nEPOCH TIME OBJECT: %s\n", json_type_to_name(o_type));
+		
 		puts("5");
 		
 		
