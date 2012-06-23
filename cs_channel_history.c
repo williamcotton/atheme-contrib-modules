@@ -91,10 +91,10 @@ on_channel_message(hook_cmessage_data_t *data)
 	        reply = redisCommand(redis, "RPUSH %s %s", list, jsonSave);
 	        freeReplyObject(reply);
 
-	        reply = redisCommand(redis, "LLEN %s", list);
-	        if (reply->integer > 5) {
-	            redisCommand(redis, "LPOP %s", list);
-	        }
+	        // reply = redisCommand(redis, "LLEN %s", list);
+	        // if (reply->integer > 5) {
+	        //     redisCommand(redis, "LPOP %s", list);
+	        // }
 	        freeReplyObject(reply);
 
 	        redisFree(redis);
