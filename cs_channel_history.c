@@ -68,6 +68,13 @@ on_channel_message(hook_cmessage_data_t *data)
 			json_object *new_obj;
 			
 			new_obj = json_tokener_parse(jsonIn);
+			
+			json_type o_type;
+			o_type = json_object_get_type(new_obj);
+
+			if (o_type == json_type_null) {
+				return;
+			}
 
 			time_t clock = time(NULL);
 			
@@ -82,19 +89,11 @@ on_channel_message(hook_cmessage_data_t *data)
 			char jsonSave[565];
 			
 			sprintf(jsonSave, "%s", json_object_to_json_string(new_obj));
-			
-	        printf("\n%s", jsonSave);
 
 	        redisContext *redis = redisConnect("127.0.0.1", 6379);
 	        redisReply *reply;
 
 	        reply = redisCommand(redis, "RPUSH %s %s", list, jsonSave);
-	        freeReplyObject(reply);
-
-	        // reply = redisCommand(redis, "LLEN %s", list);
-	        // if (reply->integer > 5) {
-	        //     redisCommand(redis, "LPOP %s", list);
-	        // }
 	        freeReplyObject(reply);
 
 	        redisFree(redis);
@@ -118,8 +117,6 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 	time_t clock = time(NULL);
 	int current_epoch_time = (int)(long)clock;
 	
-	printf("\ncurrent_epoch_time: %d", current_epoch_time);
-	
     char list[100];
     char *message;
 	
@@ -127,8 +124,6 @@ on_channel_join(hook_channel_joinpart_t *hdata)
     char *channel = c->name;
     
     sprintf(list, "channel_history:%s", channel);
-    
-    printf("\n -------- %s joined %s\n", nick, channel);
     
     redisContext *redis = redisConnect("127.0.0.1", 6379);
     redisReply *reply;
@@ -146,43 +141,36 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 		
 		if (o_type == json_type_null) {
 			redisCommand(redis, "LREM %s %d %s", list, 0, reply->element[i]->str);
-			puts("not a JSON object, removing");
 			continue;
 		}
 		
 		epoch_time_obj = json_object_object_get(new_obj, "epoch_time");
 		
-		if ((long)epoch_time_obj == 1) {
+		if ((long)epoch_time_obj == 1) { // I don't know why this does this... it being set to '1' was the trick... THIS IS GHOST CODE, PLEASE INSPECT AND FIGURE IT OUT, POSSIBLE REMOVE IT!!!
 			redisCommand(redis, "LREM %s %d %s", list, 0, reply->element[i]->str);
-			puts("it looks like an issue with the epoch_time_obj, removing");
 			continue;
 		}
 		
 		if (is_error(epoch_time_obj)) {
-			puts("looks like an error of some kind");
+			continue;
 		}
 		json_type type;
 		type = json_object_get_type(epoch_time_obj);
 		
 		if (json_object_is_type(epoch_time_obj, json_type_int)) {
-			puts("CHECKING TIME STAMP");
 			int msg_epoch_time = json_object_get_int(epoch_time_obj);
-			printf("\nepoch_time: %d", msg_epoch_time);
 
 			int max_hours = 12;
 			int max_seconds = 60*60*max_hours;
 			
 			int difference;
 			difference = current_epoch_time - msg_epoch_time;
-			printf("\ndifference: %d", difference);
 			if (difference > max_seconds) {
-				puts("TOO OLD, DELETING");
 				redisCommand(redis, "LREM %s %d %s", list, 0, reply->element[i]->str);
 				continue;
 			}
 	        msg(chansvs.nick, nick, "JSON %s", reply->element[i]->str); // "JSON" has a \001 as that space, be warry of that!!!
-	
-			puts("DONE");
+
 		}
 
     }
