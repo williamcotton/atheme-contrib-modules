@@ -133,28 +133,11 @@ on_channel_join(hook_channel_joinpart_t *hdata)
     redisContext *redis = redisConnect("127.0.0.1", 6379);
     redisReply *reply;
 
-	puts("1");
-
 	json_object *new_obj;
-	
-	puts("2");
-	
 	json_object *epoch_time_obj;
-	
-	puts("----------\n");
     
     reply = redisCommand(redis,"LRANGE %s 0 -1", list); 
     for (int i = 0; i < reply->elements; i++) {
-	
-		printf("i: %d", i);
-	
-		msg(chansvs.nick, nick, "%s", reply->element[i]->str);
-	
-		puts("3");
-	
-		printf("\n%s\n", reply->element[i]->str);
-		
-		puts("4");
 	
 		new_obj = json_tokener_parse(reply->element[i]->str);
 		
@@ -166,49 +149,35 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 			continue;
 		}
 		
-		printf("\no_type: %s\n", json_type_to_name(o_type));
-		
-		puts("5");
-		
-		
 		epoch_time_obj = json_object_object_get(new_obj, "epoch_time");
 		
 		if ((long)epoch_time_obj == 1) {
+			puts("it looks like an issue with the epoch_time_obj...");
 			continue;
 		}
 		
-		printf("(int)epoch_time_obj: %li\n",(long)epoch_time_obj);
-		
-		puts("6");
-		
-		if(is_error(epoch_time_obj)) printf("got error as expected\n");
-		
-		puts("7");
-		
+		if (is_error(epoch_time_obj)) {
+			puts("looks like an error of some kind");
+		}
 		json_type type;
 		type = json_object_get_type(epoch_time_obj);
 		
-		puts("7.5");
-		
-		printf("\nEPOCH TIME OBJECT: %s\n", json_type_to_name(type));
-		
-		puts("8");
-		
-		printf("\nEPOCH TIME OBJECT: %s\n", json_object_to_json_string(epoch_time_obj));
-		
-		puts("9");
-		
 		if (json_object_is_type(epoch_time_obj, json_type_int)) {
-			puts("10");
+			puts("1");
 			int msg_epoch_time = json_object_get_int(epoch_time_obj);
 			printf("\nepoch_time: %d", msg_epoch_time);
+
+			puts("2");
 
 			int difference;
 			difference = current_epoch_time - msg_epoch_time;
 			printf("\ndifference: %d", difference);
 			
+			puts("3");
 	        
 	        msg(chansvs.nick, nick, "JSON %s", reply->element[i]->str); // "JSON" has a \001 as that space, be warry of that!!!
+	
+			puts("4");
 		}
 
     }
