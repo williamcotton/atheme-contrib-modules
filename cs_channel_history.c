@@ -159,7 +159,11 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 		json_type o_type;
 		o_type = json_object_get_type(new_obj);
 		
-		printf("\nEPOCH TIME OBJECT: %s\n", json_type_to_name(o_type));
+		if (o_type == json_type_null) {
+			break;
+		}
+		
+		printf("\no_type: %s\n", json_type_to_name(o_type));
 		
 		puts("5");
 		
