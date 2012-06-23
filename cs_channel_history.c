@@ -92,7 +92,7 @@ on_channel_message(hook_cmessage_data_t *data)
 	        freeReplyObject(reply);
 
 	        reply = redisCommand(redis, "LLEN %s", list);
-	        if (reply->integer > 50) {
+	        if (reply->integer > 5) {
 	            redisCommand(redis, "LPOP %s", list);
 	        }
 	        freeReplyObject(reply);
