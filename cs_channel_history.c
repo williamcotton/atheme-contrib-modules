@@ -165,10 +165,12 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 		
 		puts("7");
 		
-		// json_type type;
-		// type = 
+		json_type type;
+		type = json_object_get_type(epoch_time_obj);
 		
-		printf("\nEPOCH TIME OBJECT: %s\n", json_type_to_name(json_object_get_type(epoch_time_obj)));
+		puts("7.5");
+		
+		printf("\nEPOCH TIME OBJECT: %s\n", json_type_to_name(type));
 		
 		puts("8");
 		
