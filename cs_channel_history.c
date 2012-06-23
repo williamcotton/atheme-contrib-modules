@@ -12,8 +12,22 @@
 #include <stddef.h>
 #include <time.h>
 
-#include <json/json.h>
-#include <hiredis/hiredis.h>
+#include <json/json.h> // json-c library... make sure that everything is in /usr/local/lib and /usr/local/include. There might be explicit moving of files involved.
+#include <hiredis/hiredis.h> // redis library... also, make sure the .a files are in /usr/local/lib and the .h files in /usr/local/include.
+// if you're having issues loading the module, check that LD_LIBRARY_PATH is set and includes where the above libs are, most likely in /usr/local
+// also, make sure -lhiredis and -ljson are in the lib flags in the Makefile...
+
+/*
+
+	The basic idea of this module is this:
+	
+	- ChanServ listens on all registered channels for CTCP JSON messages and stores the last 12 hours of messages in a Redis list.
+	- When a user joins a registered channel, they are sent CTCP JSON messages for the last 12 hours.
+	- Messages older than 12 hours are removed from the list.
+	- The incoming JSON message is given "nick", "channel", "epoch_time", and "time" attributes.
+	- The module remains agnostic of the remaining JSON attributes, allowing for any message type to be created for the client side of things.
+
+*/
 
 DECLARE_MODULE_V1
 (
@@ -26,76 +40,95 @@ static void
 on_channel_message(hook_cmessage_data_t *data)
 {
 	if (data != NULL && data->msg != NULL)
-	{
-		mychan_t *mc = MYCHAN_FROM(data->c);
-		metadata_t *md;
-		
-        char list[100];
+	{	
         
+        // nick and channel strings
+        char *nick = data->u->nick;
+        char *channel = data->c->name;
+
+		// the incoming message
 		char check_message[565];
 		sprintf(check_message, "%s", data->msg);
 
-        char *nick = data->u->nick;
-        char *channel = data->c->name;
-        
-        sprintf(list, "channel_history:%s", channel);
-
+		/*
+			This routine checks to see if the incoming message is a CTCP of type JSON, and if it is, stores the JSON object in jsonIn.
+		
+			in ruby:
+			
+			messages = check_message.split(" ")
+			if messages[0] == "JSON"
+				jsonIn = messages[1..-1].join(" ")
+			end
+		
+		*/
 		char jsonIn[565];
-
-		char * pch;
+		char *pch;
 		pch = strtok(check_message," ");
 		int i = 0;
 		int isJSONCTCP = 0;
 		while (pch != NULL) {
-			if (i == 0) {
+			if (i == 0) { // if messages[0] == "JSON"
 				if (strcmp(pch, "JSON") == 0) { // "JSON" has a \001 as that space, be warry of that!!!
 					isJSONCTCP = 1;
 				}
 			}
-			if (i == 1 && isJSONCTCP == 1) {
-				strcpy(jsonIn, pch);
+			if (i == 1 && isJSONCTCP == 1) { // messages[1..-1]
+				strcpy(jsonIn, pch); 
 			}
-			if (i > 1 && isJSONCTCP == 1) {
+			if (i > 1 && isJSONCTCP == 1) { // .join(" ")
 				strcat(jsonIn, " ");
 				strcat(jsonIn, pch);
 			}
-			pch = strtok (NULL, " ");
+			pch = strtok(NULL, " ");
 			i++;
 		}
+		
+		
 
-		if (strlen(jsonIn) > 0) {
+		if (strlen(jsonIn) > 0) { // if it was a JSON CTCP
 			
+			// parse the JSON
 			json_object *new_obj;
-			
 			new_obj = json_tokener_parse(jsonIn);
 			
+			// check to see if it is valid JSON
 			json_type o_type;
 			o_type = json_object_get_type(new_obj);
-
-			if (o_type == json_type_null) {
+			if (o_type == json_type_null) { 
 				return;
 			}
 
+			// getting timestamps
 			time_t clock = time(NULL);
-			
 			char *currentTime = ctime(&clock);
-			long epoch_time = (long) clock;
+			long epoch_time = (long)clock;
 
+
+			// adding to the incoming JSON a bunch of fields that shouldn't be set by clients
 			json_object_object_add(new_obj, "epoch_time", json_object_new_int(epoch_time));
 			json_object_object_add(new_obj, "time", json_object_new_string(currentTime));
 			json_object_object_add(new_obj, "nick", json_object_new_string(nick));
 			json_object_object_add(new_obj, "channel", json_object_new_string(channel));
 			
-			char jsonSave[565];
 			
+			
+			// I don't totally know why I need to load up the string like this... I need to know more about C!
+			char jsonSave[565];
 			sprintf(jsonSave, "%s", json_object_to_json_string(new_obj));
 
+			// connect to Redis
 	        redisContext *redis = redisConnect("127.0.0.1", 6379);
 	        redisReply *reply;
+	
+			// our Redis list name, based on the channel
+			char list[100];
+	        sprintf(list, "channel_history:%s", channel);
 
+			// save the JSON to the list
 	        reply = redisCommand(redis, "RPUSH %s %s", list, jsonSave);
 	        freeReplyObject(reply);
 
+			// free at last!
 	        redisFree(redis);
 		}
         
@@ -105,94 +138,108 @@ on_channel_message(hook_cmessage_data_t *data)
 static void
 on_channel_join(hook_channel_joinpart_t *hdata)
 {
+	
+	// get our user and channel structs
     channel_t *c = hdata->cu->chan;
     user_t *u = hdata->cu->user;
+    char *nick = u->nick;
+    char *channel = c->name;
 	
-	chanuser_t *cu = hdata->cu;
-	myuser_t *mu;
-	mychan_t *mc;
-	chanacs_t *ca;
-	metadata_t *md;
-	
+	// get timestamps
 	time_t clock = time(NULL);
 	int current_epoch_time = (int)(long)clock;
 	
-    char list[100];
-    char *message;
 	
-    char *nick = cu->user->nick;
-    char *channel = c->name;
     
-    sprintf(list, "channel_history:%s", channel);
-    
-    redisContext *redis = redisConnect("127.0.0.1", 6379);
-    redisReply *reply;
-
+	// declare our json_objects
 	json_object *new_obj;
 	json_object *epoch_time_obj;
     
+	// connect to Redis
+    redisContext *redis = redisConnect("127.0.0.1", 6379);
+    redisReply *reply;
+
+	// format our Redis list key
+	char list[100];
+    sprintf(list, "channel_history:%s", channel);
+
+	// get the list of messages
     reply = redisCommand(redis,"LRANGE %s 0 -1", list); 
+
+	// loop through the list
     for (int i = 0; i < reply->elements; i++) {
 	
+		// parse the JSON
 		new_obj = json_tokener_parse(reply->element[i]->str);
 		
+		// make sure it is valid JSON, if not, remove it from the Redis list
 		json_type o_type;
 		o_type = json_object_get_type(new_obj);
-		
 		if (o_type == json_type_null) {
 			redisCommand(redis, "LREM %s %d %s", list, 0, reply->element[i]->str);
 			continue;
 		}
 		
-		epoch_time_obj = json_object_object_get(new_obj, "epoch_time");
-		
+		// sanity check
+		epoch_time_obj = json_object_object_get(new_obj, "epoch_time");	
 		if ((long)epoch_time_obj == 1) { // I don't know why this does this... it being set to '1' was the trick... THIS IS GHOST CODE, PLEASE INSPECT AND FIGURE IT OUT, POSSIBLE REMOVE IT!!!
 			redisCommand(redis, "LREM %s %d %s", list, 0, reply->element[i]->str);
 			continue;
 		}
 		
+		// sanity check
 		if (is_error(epoch_time_obj)) {
 			continue;
 		}
+		
+		// sanity check
 		json_type type;
 		type = json_object_get_type(epoch_time_obj);
-		
 		if (json_object_is_type(epoch_time_obj, json_type_int)) {
+			
+			
+			// get the time that the message was created
 			int msg_epoch_time = json_object_get_int(epoch_time_obj);
+			
 
+			// remove messages that are older than 12 hours
 			int max_hours = 12;
 			int max_seconds = 60*60*max_hours;
-			
 			int difference;
 			difference = current_epoch_time - msg_epoch_time;
 			if (difference > max_seconds) {
 				redisCommand(redis, "LREM %s %d %s", list, 0, reply->element[i]->str);
 				continue;
 			}
+			
+			
+			
+			// message the user who joined a CTCP JSON message
 	        msg(chansvs.nick, nick, "JSON %s", reply->element[i]->str); // "JSON" has a \001 as that space, be warry of that!!!
 
 		}
 
     }
     
-    
-    
-    freeReplyObject(reply);
-    
+    // free at last!
+    freeReplyObject(reply);   
     redisFree(redis);
 }
 
 void _modinit(module_t *m)
 {
+	// register a handler function for when a user posts a message in a channel
 	hook_add_event("channel_message");
 	hook_add_channel_message(on_channel_message);
 	
+	// register a handler function for when a user joins a channel
     hook_add_event("channel_join");
     hook_add_channel_join(on_channel_join);
 }
 
 void _moddeinit(module_unload_intent_t intent)
 {
+	// unregister the handlers... important for modreload
 	hook_del_channel_message(on_channel_message);
 	hook_del_channel_join(on_channel_join);
 }
