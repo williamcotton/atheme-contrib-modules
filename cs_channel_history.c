@@ -145,6 +145,8 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 		json_object *epoch_time_obj;
 		epoch_time_obj = json_object_object_get(new_obj, "epoch_time");
 		
+		printf("\nEPOCH TIME OBJECT: %s", json_object_to_json_string(epoch_time_obj));
+		
 		if (json_object_is_type(epoch_time_obj, json_type_int)) {
 			puts("2.5");
 			int msg_epoch_time = json_object_get_int(epoch_time_obj);
