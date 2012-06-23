@@ -128,27 +128,39 @@ on_channel_join(hook_channel_joinpart_t *hdata)
     
     sprintf(list, "channel_history:%s", channel);
     
-    printf(" -------- %s joined %s\n", nick, channel);
+    printf("\n -------- %s joined %s\n", nick, channel);
     
     redisContext *redis = redisConnect("127.0.0.1", 6379);
     redisReply *reply;
 
+	puts("1");
+
 	json_object *new_obj;
+	
+	puts("2");
     
-    reply = redisCommand(redis,"LRANGE %s 0 -1", list);   
+    reply = redisCommand(redis,"LRANGE %s 0 -1", list); 
     for (int i = 0; i < reply->elements; i++) {
 	
+		puts("3");
+	
 		printf("\n%s", reply->element[i]->str);
+		
+		puts("4");
 	
 		new_obj = json_tokener_parse(reply->element[i]->str);
+		
+		puts("5");
 		
 		json_object *epoch_time_obj;
 		epoch_time_obj = json_object_object_get(new_obj, "epoch_time");
 		
+		puts("6");
+		
 		printf("\nEPOCH TIME OBJECT: %s", json_object_to_json_string(epoch_time_obj));
 		
 		if (json_object_is_type(epoch_time_obj, json_type_int)) {
-			puts("2.5");
+			puts("7");
 			int msg_epoch_time = json_object_get_int(epoch_time_obj);
 			printf("\nepoch_time: %d", msg_epoch_time);
 
