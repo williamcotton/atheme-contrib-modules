@@ -146,6 +146,8 @@ on_channel_join(hook_channel_joinpart_t *hdata)
     reply = redisCommand(redis,"LRANGE %s 0 -1", list); 
     for (int i = 0; i < reply->elements; i++) {
 	
+		printf("i: %d", i);
+	
 		msg(chansvs.nick, nick, "%s", reply->element[i]->str);
 	
 		puts("3");
@@ -160,7 +162,8 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 		o_type = json_object_get_type(new_obj);
 		
 		if (o_type == json_type_null) {
-			break;
+			puts("not a JSON object");
+			continue;
 		}
 		
 		printf("\no_type: %s\n", json_type_to_name(o_type));
@@ -171,7 +174,7 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 		epoch_time_obj = json_object_object_get(new_obj, "epoch_time");
 		
 		if ((long)epoch_time_obj == 1) {
-			break;
+			continue;
 		}
 		
 		printf("(int)epoch_time_obj: %li\n",(long)epoch_time_obj);
