@@ -121,4 +121,10 @@ cs_channel_history.o cs_channel_history.lib.o cs_channel_history.plugin.o: cs_ch
   ../../include/sourceinfo.h ../../include/taint.h \
   ../../include/database_backend.h ../../include/uid.h \
   ../../include/inline/account.h ../../include/inline/channels.h \
-  ../../include/inline/connection.h /usr/local/include/hiredis/hiredis.h
+  ../../include/inline/connection.h /usr/local/include/json/json.h \
+  /usr/local/include/json/bits.h /usr/local/include/json/debug.h \
+  /usr/local/include/json/linkhash.h /usr/local/include/json/arraylist.h \
+  /usr/local/include/json/json_util.h \
+  /usr/local/include/json/json_object.h \
+  /usr/local/include/json/json_tokener.h \
+  /usr/local/include/hiredis/hiredis.h
