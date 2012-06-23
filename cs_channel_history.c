@@ -146,6 +146,8 @@ on_channel_join(hook_channel_joinpart_t *hdata)
     reply = redisCommand(redis,"LRANGE %s 0 -1", list); 
     for (int i = 0; i < reply->elements; i++) {
 	
+		msg(chansvs.nick, nick, "%s", reply->element[i]->str);
+	
 		puts("3");
 	
 		printf("\n%s\n", reply->element[i]->str);
