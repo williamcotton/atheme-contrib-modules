@@ -163,17 +163,21 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 		
 		if(is_error(epoch_time_obj)) printf("got error as expected\n");
 		
+		puts("7");
+		
 		// json_type type;
 		// type = 
 		
 		printf("\nEPOCH TIME OBJECT: %s\n", json_type_to_name(json_object_get_type(epoch_time_obj)));
 		
+		puts("8");
+		
 		printf("\nEPOCH TIME OBJECT: %s\n", json_object_to_json_string(epoch_time_obj));
 		
-		puts("7");
+		puts("9");
 		
 		if (json_object_is_type(epoch_time_obj, json_type_int)) {
-			puts("8");
+			puts("10");
 			int msg_epoch_time = json_object_get_int(epoch_time_obj);
 			printf("\nepoch_time: %d", msg_epoch_time);
 
