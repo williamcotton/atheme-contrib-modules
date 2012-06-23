@@ -142,20 +142,20 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 		
 		json_object *epoch_time_obj;
 		epoch_time_obj = json_object_object_get(new_obj, "epoch_time");
-		puts("2.5");
-		int msg_epoch_time = json_object_get_int(epoch_time_obj);
-		printf("\nepoch_time: %d", msg_epoch_time);
+		
+		if (epoch_time_obj) {
+			puts("2.5");
+			int msg_epoch_time = json_object_get_int(epoch_time_obj);
+			printf("\nepoch_time: %d", msg_epoch_time);
 
-		
-		int difference;
-		difference = current_epoch_time - msg_epoch_time;
-		printf("\ndifference: %d", difference);
-		
-	
-        printf("\n%s", reply->element[i]->str);
+			int difference;
+			difference = current_epoch_time - msg_epoch_time;
+			printf("\ndifference: %d", difference);
+			
+	        printf("\n%s", reply->element[i]->str);
+	        msg(chansvs.nick, nick, "JSON %s", reply->element[i]->str); // "JSON" has a \001 as that space, be warry of that!!!
+		}
 
-		
-        msg(chansvs.nick, nick, "JSON %s", reply->element[i]->str); // "JSON" has a \001 as that space, be warry of that!!!
     }
     
     
