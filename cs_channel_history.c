@@ -138,12 +138,14 @@ on_channel_join(hook_channel_joinpart_t *hdata)
     reply = redisCommand(redis,"LRANGE %s 0 -1", list);   
     for (int i = 0; i < reply->elements; i++) {
 	
+		printf("\n%s", reply->element[i]->str);
+	
 		new_obj = json_tokener_parse(reply->element[i]->str);
 		
 		json_object *epoch_time_obj;
 		epoch_time_obj = json_object_object_get(new_obj, "epoch_time");
 		
-		if (epoch_time_obj) {
+		if (json_object_is_type(epoch_time_obj, json_type_int)) {
 			puts("2.5");
 			int msg_epoch_time = json_object_get_int(epoch_time_obj);
 			printf("\nepoch_time: %d", msg_epoch_time);
@@ -152,7 +154,7 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 			difference = current_epoch_time - msg_epoch_time;
 			printf("\ndifference: %d", difference);
 			
-	        printf("\n%s", reply->element[i]->str);
+	        
 	        msg(chansvs.nick, nick, "JSON %s", reply->element[i]->str); // "JSON" has a \001 as that space, be warry of that!!!
 		}
 
