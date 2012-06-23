@@ -48,7 +48,7 @@ on_channel_message(hook_cmessage_data_t *data)
 		int isJSONCTCP = 0;
 		while (pch != NULL) {
 			if (i == 0) {
-				if (strcmp(pch, "JSON") == 0) {
+				if (strcmp(pch, "JSON") == 0) { // "JSON" has a \001 as that space, be warry of that!!!
 					isJSONCTCP = 1;
 				}
 			}
@@ -83,7 +83,7 @@ on_channel_message(hook_cmessage_data_t *data)
 			
 			sprintf(jsonSave, "%s", json_object_to_json_string(new_obj));
 			
-	        printf("%s\n", jsonSave);
+	        printf("\n%s", jsonSave);
 
 	        redisContext *redis = redisConnect("127.0.0.1", 6379);
 	        redisReply *reply;
@@ -130,8 +130,8 @@ on_channel_join(hook_channel_joinpart_t *hdata)
     
     reply = redisCommand(redis,"LRANGE %s 0 -1", list);   
     for (int i = 0; i < reply->elements; i++) {
-        printf("\n --- %s", reply->element[i]->str);
-        msg(chansvs.nick, nick, "%s:::%s", channel, reply->element[i]->str);
+        printf("\n%s", reply->element[i]->str);
+        msg(chansvs.nick, nick, "JSON%s", reply->element[i]->str); // "JSON" has a \001 as that space, be warry of that!!!
     }
     
     
