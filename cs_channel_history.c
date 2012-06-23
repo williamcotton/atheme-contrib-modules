@@ -141,7 +141,7 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 	
 	json_object *epoch_time_obj;
 	
-	puts("----------");
+	puts("----------\n");
     
     reply = redisCommand(redis,"LRANGE %s 0 -1", list); 
     for (int i = 0; i < reply->elements; i++) {
@@ -161,10 +161,16 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 		
 		puts("6");
 		
-		printf("\nEPOCH TIME OBJECT: %s", json_object_to_json_string(epoch_time_obj));
+		if(is_error(epoch_time_obj)) printf("got error as expected\n");
+		
+		printf("\nEPOCH TIME OBJECT: %s\n", json_type_to_name(epoch_time_obj));
+		
+		printf("\nEPOCH TIME OBJECT: %s\n", json_object_to_json_string(epoch_time_obj));
+		
+		puts("7");
 		
 		if (json_object_is_type(epoch_time_obj, json_type_int)) {
-			puts("7");
+			puts("8");
 			int msg_epoch_time = json_object_get_int(epoch_time_obj);
 			printf("\nepoch_time: %d", msg_epoch_time);
 
