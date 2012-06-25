@@ -97,12 +97,11 @@ on_channel_message(hook_cmessage_data_t *data)
             i++;
         }
 
-        printf("jsonIn: %s", jsonIn);
-        printf("strlen(jsonIn): %i", (int)strlen(jsonIn));
-
+        printf("jsonIn: %s\n", jsonIn);
+        printf("strlen(jsonIn): %i\n", (int)strlen(jsonIn));
 
         elog("check if it was a CTCP JSON message");
-        if (strlen(jsonIn) > 0) { // if it was a JSON CTCP
+        if ((int)strlen(jsonIn) > 0) { // if it was a JSON CTCP
 
             elog("parse the JSON");
             // parse the JSON
