@@ -36,16 +36,25 @@ DECLARE_MODULE_V1
 	"William Cotton <williamcotton@gmail.com>"
 );
 
+void elog(const char *message)
+{
+    if (true) {
+        puts(message);
+    }
+}
+
 static void
 on_channel_message(hook_cmessage_data_t *data)
 {
     
     if (data != NULL && data->msg != NULL) {	
 
+        elog("nick and channel strings");
         // nick and channel strings
         char *nick = data->u->nick;
         char *channel = data->c->name;
 
+        elog("the incoming message");
         // the incoming message
         char check_message[565];
         sprintf(check_message, "%s", data->msg);
@@ -61,6 +70,7 @@ on_channel_message(hook_cmessage_data_t *data)
         	end
 
         */
+        elog("parse for CTCP JSON");
         char jsonIn[565];
         char *pch;
         pch = strtok(check_message," ");
@@ -84,13 +94,15 @@ on_channel_message(hook_cmessage_data_t *data)
         }
 
 
-
+        elog("check if it was a CTCP JSON message");
         if (strlen(jsonIn) > 0) { // if it was a JSON CTCP
 
+            elog("parse the JSON");
             // parse the JSON
             json_object *new_obj;
             new_obj = json_tokener_parse(jsonIn);
 
+            elog("check to see if it is valid JSON");
             // check to see if it is valid JSON
             json_type o_type;
             o_type = json_object_get_type(new_obj);
@@ -98,12 +110,13 @@ on_channel_message(hook_cmessage_data_t *data)
                 return;
             }
 
+            elog("getting timestamps");
             // getting timestamps
             time_t clock = time(NULL);
             char *currentTime = ctime(&clock);
             long epoch_time = (long)clock;
 
-
+            elog("adding to the incoming JSON a bunch of fields that shouldn't be set by clients");
             // adding to the incoming JSON a bunch of fields that shouldn't be set by clients
             json_object_object_add(new_obj, "epoch_time", json_object_new_int(epoch_time));
             json_object_object_add(new_obj, "time", json_object_new_string(currentTime));
@@ -111,23 +124,27 @@ on_channel_message(hook_cmessage_data_t *data)
             json_object_object_add(new_obj, "channel", json_object_new_string(channel));
 
 
-
+            elog("I don't totally know why I need to load up the string like this... I need to know more about C!");
             // I don't totally know why I need to load up the string like this... I need to know more about C!
             char jsonSave[565];
             sprintf(jsonSave, "%s", json_object_to_json_string(new_obj));
 
+            elog("connect to Redis");
             // connect to Redis
             redisContext *redis = redisConnect("127.0.0.1", 6379);
             redisReply *reply;
 
+            elog("our Redis list name, based on the channel");
             // our Redis list name, based on the channel
             char list[100];
             sprintf(list, "channel_history:%s", channel);
 
+            elog("save the JSON to the list");
             // save the JSON to the list
             reply = redisCommand(redis, "RPUSH %s %s", list, jsonSave);
             freeReplyObject(reply);
 
+            elog("free at last!");
             // free at last!
             redisFree(redis);
         }
@@ -139,39 +156,46 @@ static void
 on_channel_join(hook_channel_joinpart_t *hdata)
 {
 
+    elog("get our user and channel structs");
     // get our user and channel structs
     channel_t *c = hdata->cu->chan;
     user_t *u = hdata->cu->user;
     char *nick = u->nick;
     char *channel = c->name;
 
+    elog("get timestamps");
     // get timestamps
     time_t clock = time(NULL);
     int current_epoch_time = (int)(long)clock;
 
-
-
+    elog("declare out json_objects");
     // declare our json_objects
     json_object *new_obj;
     json_object *epoch_time_obj;
 
+    elog("connect to Redis");
     // connect to Redis
     redisContext *redis = redisConnect("127.0.0.1", 6379);
     redisReply *reply;
 
+    elog("format our Redis list key");
     // format our Redis list key
     char list[100];
     sprintf(list, "channel_history:%s", channel);
 
+    elog("get the list of messages");
     // get the list of messages
     reply = redisCommand(redis,"LRANGE %s 0 -1", list); 
 
+    elog("loop through the list");
     // loop through the list
     for (int i = 0; i < reply->elements; i++) {
 
+        elog("parse the JSON");
         // parse the JSON
         new_obj = json_tokener_parse(reply->element[i]->str);
 
+        elog("make sure it is valid JSON, if not, remove it from the Redis list");
         // make sure it is valid JSON, if not, remove it from the Redis list
         json_type o_type;
         o_type = json_object_get_type(new_obj);
@@ -180,6 +204,7 @@ on_channel_join(hook_channel_joinpart_t *hdata)
             continue;
         }
 
+        elog("sanity check 1");
         // sanity check
         epoch_time_obj = json_object_object_get(new_obj, "epoch_time");	
         if ((long)epoch_time_obj == 1) { // I don't know why this does this... it being set to '1' was the trick... THIS IS GHOST CODE, PLEASE INSPECT AND FIGURE IT OUT, POSSIBLE REMOVE IT!!!
@@ -187,21 +212,23 @@ on_channel_join(hook_channel_joinpart_t *hdata)
             continue;
         }
 
+        elog("sanity check 2");
         // sanity check
         if (is_error(epoch_time_obj)) {
             continue;
         }
 
+        elog("sanity check 3");
         // sanity check
         json_type type;
         type = json_object_get_type(epoch_time_obj);
         if (json_object_is_type(epoch_time_obj, json_type_int)) {
 
-
+            elog("get the time that the message was created");
             // get the time that the message was created
             int msg_epoch_time = json_object_get_int(epoch_time_obj);
 
-
+            elog("remove messages that are older than 12 hours");
             // remove messages that are older than 12 hours
             int max_hours = 12;
             int max_seconds = 60*60*max_hours;
@@ -213,7 +240,7 @@ on_channel_join(hook_channel_joinpart_t *hdata)
             }
 
 
-
+            elog("message the user who joined a CTCP JSON message");
             // message the user who joined a CTCP JSON message
             msg(chansvs.nick, nick, "JSON %s", reply->element[i]->str); // "JSON" has a \001 as that space, be warry of that!!!
 
@@ -221,6 +248,7 @@ on_channel_join(hook_channel_joinpart_t *hdata)
 
     }
 
+    elog("free at last!");
     // free at last!
     freeReplyObject(reply);   
     redisFree(redis);
