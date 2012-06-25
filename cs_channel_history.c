@@ -81,6 +81,10 @@ on_channel_message(hook_cmessage_data_t *data)
                 if (strcmp(pch, "JSON") == 0) { // "JSON" has a \001 as that space, be warry of that!!!
                     isJSONCTCP = 1;
                 }
+                else { // might as well get out of here, right?
+                    elog("not a valid CTCP JSON message, leaving");
+                    return;
+                }
             }
             if (i == 1 && isJSONCTCP == 1) { // messages[1..-1]
                 strcpy(jsonIn, pch); 
@@ -92,6 +96,9 @@ on_channel_message(hook_cmessage_data_t *data)
             pch = strtok(NULL, " ");
             i++;
         }
+
+        printf("jsonIn: %s", jsonIn);
+        printf("strlen(jsonIn): %i", (int)strlen(jsonIn));
 
 
         elog("check if it was a CTCP JSON message");
@@ -106,7 +113,8 @@ on_channel_message(hook_cmessage_data_t *data)
             // check to see if it is valid JSON
             json_type o_type;
             o_type = json_object_get_type(new_obj);
-            if (o_type == json_type_null) { 
+            if (o_type == json_type_null) {
+                elog("not valid json, leaving");
                 return;
             }
 
