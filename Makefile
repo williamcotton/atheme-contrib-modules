@@ -8,7 +8,7 @@
 
 MODULE = contrib
 
-SRCS = $(wildcard *.c)
+SRCS = cs_channel_history.c
 
 include ../../extra.mk
 include ../../buildsys.mk

@@ -242,6 +242,9 @@ on_channel_join(hook_channel_joinpart_t *hdata)
             int difference;
             difference = current_epoch_time - msg_epoch_time;
             if (difference > max_seconds) {
+                printf("current_epoch_time: %d\n", current_epoch_time);
+                printf("msg_epoch_time: %d\n", msg_epoch_time);
+                printf("removing message with timestamp: %s\n", reply->element[i]->str);
                 redisCommand(redis, "LREM %s %d %s", list, 0, reply->element[i]->str);
                 continue;
             }
