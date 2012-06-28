@@ -97,8 +97,8 @@ on_channel_message(hook_cmessage_data_t *data)
             i++;
         }
 
-        printf("jsonIn: %s\n", jsonIn);
-        printf("strlen(jsonIn): %i\n", (int)strlen(jsonIn));
+        //printf("jsonIn: %s\n", jsonIn);
+        //printf("strlen(jsonIn): %i\n", (int)strlen(jsonIn));
 
         elog("check if it was a CTCP JSON message");
         if ((int)strlen(jsonIn) > 0) { // if it was a JSON CTCP
@@ -242,9 +242,9 @@ on_channel_join(hook_channel_joinpart_t *hdata)
             int difference;
             difference = current_epoch_time - msg_epoch_time;
             if (difference > max_seconds) {
-                printf("current_epoch_time: %d\n", current_epoch_time);
-                printf("msg_epoch_time: %d\n", msg_epoch_time);
-                printf("removing message with timestamp: %s\n", reply->element[i]->str);
+                //printf("current_epoch_time: %d\n", current_epoch_time);
+                //printf("msg_epoch_time: %d\n", msg_epoch_time);
+                //printf("removing message with timestamp: %s\n", reply->element[i]->str);
                 redisCommand(redis, "LREM %s %d %s", list, 0, reply->element[i]->str);
                 continue;
             }
