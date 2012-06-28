@@ -38,7 +38,7 @@ DECLARE_MODULE_V1
 
 void elog(const char *message)
 {
-    if (true) {
+    if (false) {
         puts(message);
     }
 }
