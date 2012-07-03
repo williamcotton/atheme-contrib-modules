@@ -194,6 +194,10 @@ on_channel_join(hook_channel_joinpart_t *hdata)
     // get the list of messages
     reply = redisCommand(redis,"LRANGE %s 0 -1", list); 
 
+    elog("send out stream start");
+
+    msg(chansvs.nick, nick, "JSON {\"channel\":\"%s\", \"start_channel_history\":\"true\"} ", channel); 
+
     elog("loop through the list");
     // loop through the list
     for (int i = 0; i < reply->elements; i++) {
@@ -257,6 +261,8 @@ on_channel_join(hook_channel_joinpart_t *hdata)
         }
 
     }
+
+    msg(chansvs.nick, nick, "JSON {\"channel\":\"%s\", \"end_channel_history\":\"true\"} ", channel); 
 
     elog("free at last!");
     // free at last!
