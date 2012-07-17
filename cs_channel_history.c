@@ -150,6 +150,12 @@ on_channel_message(hook_cmessage_data_t *data)
             // save the JSON to the list
             reply = redisCommand(redis, "RPUSH %s %s", list, jsonSave);
             freeReplyObject(reply);
+            
+            reply = redisCommand(redis, "LLEN %s", list);
+  	        if (reply->integer > 200) {
+  	            redisCommand(redis, "LPOP %s", list);
+  	        }
+  	        freeReplyObject(reply);
 
             elog("free at last!");
             // free at last!
